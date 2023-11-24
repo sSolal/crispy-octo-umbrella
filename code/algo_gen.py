@@ -19,20 +19,20 @@ class Genom:
 	def random_genom(self):
 		weights = []
 		for i in range(self.n):
-		    weights.append(1+random.random())	# 1 + ... for less random
+		    weights.append(random.random())	# random between 0 et 1
 		self.weights = weights
 
 	def mutate_proba(self, proba_mutation = 0.1):
 		new_weights = self.weights.copy()
 		for i in range(self.n):
 		    if random.random() < proba_mutation : 
-		        new_weights[i] = max(0,  new_weights[i] + random.gauss(0,1))
+		        new_weights[i] = min(1, max(0,  new_weights[i] + random.gauss(0,1)))
 		return Genom(self.n, new_weights)
 		        
 	def mutate_choose_one(self):
 		new_weights = self.weights.copy()
 		i = random.randint(0, self.n-1)
-		new_weights[i] = max(0,  new_weights[i] + random.gauss(0,1))
+		new_weights[i] =  min(1, max(0,  new_weights[i] + random.gauss(0,1)))
 		return Genom(self.n, new_weights)
 
 	def mutate_swap(self):
