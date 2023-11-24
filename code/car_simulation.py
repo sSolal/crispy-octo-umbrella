@@ -1,3 +1,3 @@
-class Network :
-    def __init__(self):
-        print("Hello world !")
+from graphs import Graph
+
+

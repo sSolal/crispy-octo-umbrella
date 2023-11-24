@@ -30,3 +30,6 @@ class Graph : # a graph with weights
     def print_graph(self):
         for edge in self.edges :
             print(edge, ', w =', round(self.weight[edge], 2))
+            
+	def eval(self):
+		pass
