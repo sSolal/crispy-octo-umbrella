@@ -1,5 +1,7 @@
 from graphs import Graph
 import random
+import numpy as np
+import matplotlib.pyplot as plt
 
 class Genom:
 	""" 
@@ -26,13 +28,13 @@ class Genom:
 		new_weights = self.weights.copy()
 		for i in range(self.n):
 		    if random.random() < proba_mutation : 
-		        new_weights[i] = min(1, max(0,  new_weights[i] + random.gauss(0,1)))
+		        new_weights[i] = min(1, max(0.01,  new_weights[i] + random.gauss(0,1)))
 		return Genom(self.n, new_weights)
 		        
 	def mutate_choose_one(self):
 		new_weights = self.weights.copy()
 		i = random.randint(0, self.n-1)
-		new_weights[i] =  min(1, max(0,  new_weights[i] + random.gauss(0,1)))
+		new_weights[i] =  min(1, max(0.01,  new_weights[i] + random.gauss(0,1)))
 		return Genom(self.n, new_weights)
 
 	def mutate_swap(self):
@@ -55,7 +57,7 @@ class Genom:
 		return Genom(self.n, new_weights)
 		                      
 	def evaluate_on(self, G):  # Return the value of the fitness function for one individual (how he performs on the graph G)
-		pass
+		return G.eval_simple(self)
                               
 class Population:
 	""" 
@@ -77,14 +79,43 @@ class Population:
 	def evaluate_pop(self):
 		dict_eval = {}
 		for ind in self.pop :
-		    dict_eval[ind] = ind.evaluate_on(G)
+		    dict_eval[ind] = ind.evaluate_on(self.G)
 		sorted_pop = sorted(self.pop, key = lambda x : dict_eval[x])
-		return sorted_pop
+		return sorted_pop, dict_eval[sorted_pop[0]]
 		                      
-	def train(self, Nb_generations):
+	def train(self, Nb_generations, part_mut = 0.1, plot = True):
+		nb_mut = int(self.nb_indiv*part_mut)
+		nb_enfant = self.nb_indiv - nb_mut - 1
+		all_bests = []
+		better_bests = []
+		best_solution = np.inf
 		for i in range(1, Nb_generations+1):
-		    sp = self.evaluate_pop()
-		    # build the new_generation
-
+		    sp, best_perf = self.evaluate_pop()
+		    all_bests.append(best_perf)
+		    if best_perf < best_solution :
+		    	better_bests.append((best_perf, i))
+		    	best_solution = best_perf
+		    	
+		    new_gen = [] # build the new_generation
+		    new_gen.append(sp[0])
+		    for j in range(nb_mut):
+		    	new_gen.append( sp[j].mutate_choose_one() )
+		    for j in range(nb_enfant):
+		    	parent1 = sp[ int(0 + random.gauss(0, 1)) ]
+		    	parent2 = parent1
+		    	while parent2 == parent1 :
+		    		parent2 = sp[int(1 + random.gauss(0, 2)) ]
+		    	enfant = parent1.cross_over(parent2)
+		    	new_gen.append(enfant)
+		    	
+		    self.pop = new_gen
+		    
+		if plot :
+			plt.plot(all_bests)
+			plt.show()
+		return self.pop
+		
+		    
+		    
 # P = Genom(10)
 # enfant = P.mutate()

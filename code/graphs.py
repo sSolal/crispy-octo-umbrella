@@ -37,12 +37,32 @@ class Graph : # a graph with weights
 
 		# Create a list of colors for the nodes
 		node_colors = ['green' if i == 0 else 'red' if i == self.nb_nodes - 1 else 'blue' for i in G.nodes()]
-		nx.draw(G, with_labels=True, font_weight='bold', node_color=node_colors)
+		nx.draw(G, with_labels=True, font_weight='bold', node_color=node_colors, node_size = 1000)
 		plt.show()
-		    
-	def eval(self, genom):
-		weights = genom.weights
-		pass
-
+		
+	def random_traject(self, genom):
+		dict_edges_weghted = { self.edges[i]: genom.weights[i] for i in range(genom.n) }
+		chemin = [self.s]
+		actual_node = self.s
+		time = 0
+		while actual_node != self.t :
+			edges_possible = self.out_edges_weighted(actual_node, genom)
+			edge_choosen = random.choices(list(edges_possible.keys()), weights=edges_possible.values(), k=1)[0]
+			time += edge_choosen.b
+			actual_node = edge_choosen.v
+			chemin.append(actual_node)
+		return chemin, time
+				
+	def eval_simple(self, genom):
+		nb_trajects = 100
+		S = 0
+		for i in range(nb_trajects):
+			chemin, time = self.random_traject(genom)
+			S += time
+		return S/100
+		
+	def out_edges_weighted(self, node, genom):
+		return {self.edges[i] : genom.weights[i] for i in range(genom.n) if self.edges[i].u == node}
+		
 	def out_edges(self, node):
 		return [e for e in self.edges if e.u == node]
