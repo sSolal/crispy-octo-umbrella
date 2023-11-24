@@ -2,7 +2,7 @@ import random
 
 class Edge :
     def __init__(self, u, v, a=0, b=0):
-        self.a = a  # t = e*d + b with d the flow of driver (nb / min)
+        self.a = a  # t = a*d + b with d the flow of driver (nb / min)
         self.b = b
         self.u = u # u the starting node
         self.v = v # v the ending node
