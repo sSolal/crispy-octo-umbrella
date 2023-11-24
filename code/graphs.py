@@ -31,5 +31,8 @@ class Graph : # a graph with weights
         for edge in self.edges :
             print(edge, ', w =', round(self.weight[edge], 2))
             
-	def eval(self):
-		pass
+    def eval(self):
+	pass
+
+    def out_edges(self, node):
+        return [e for e in self.edges if e.u == node]
