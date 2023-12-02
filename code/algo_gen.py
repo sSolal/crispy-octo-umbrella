@@ -21,15 +21,15 @@ class Genom:
 	def random_genom(self):
 		weights = []
 		for i in range(self.n):
-		    weights.append(random.random())	# random between 0 et 1
+			weights.append(random.random())	# random between 0 et 1
 		self.weights = weights
 
 	def mutate_proba(self, proba_mutation = 0.1):
 		new_weights = self.weights.copy()
 		for i in range(self.n):
-		    if random.random() < proba_mutation : 
-		        new_weights[i] = min(1, max(0.01,  new_weights[i] + random.gauss(0,1)))
-		return Genom(self.n, new_weights)
+			if random.random() < proba_mutation : 
+				new_weights[i] = min(1, max(0.01,  new_weights[i] + random.gauss(0,1)))
+			return Genom(self.n, new_weights)
 		        
 	def mutate_choose_one(self):
 		new_weights = self.weights.copy()
@@ -42,7 +42,7 @@ class Genom:
 		i = random.randint(0, self.n-1)
 		j = i
 		while j != i :
-		    j = random.randint(0, self.n-1)
+			j = random.randint(0, self.n-1)
 		new_weights[i], new_weights[j]=new_weights[j], new_weights[i]
 		return Genom(self.n, new_weights)
 		                       
@@ -50,10 +50,10 @@ class Genom:
 		new_weights = []
 		assert self.n == other.n 
 		for i in range(self.n):
-		    if random.random() < 0.5 :
-		        new_weights.append(self.weights[i])
-		    else :
-		        new_weights.append(other.weights[i])
+			if random.random() < 0.5 :
+				new_weights.append(self.weights[i])
+			else :
+				new_weights.append(other.weights[i])
 		return Genom(self.n, new_weights)
 		                      
 	def evaluate_on(self, G):  # Return the value of the fitness function for one individual (how he performs on the graph G)
@@ -90,25 +90,25 @@ class Population:
 		better_bests = []
 		best_solution = np.inf
 		for i in range(1, Nb_generations+1):
-		    sp, best_perf = self.evaluate_pop()
-		    all_bests.append(best_perf)
-		    if best_perf < best_solution :
-		    	better_bests.append((best_perf, i))
-		    	best_solution = best_perf
+			sp, best_perf = self.evaluate_pop()
+			all_bests.append(best_perf)
+			if best_perf < best_solution :
+				better_bests.append((best_perf, i))
+				best_solution = best_perf
 		    	
-		    new_gen = [] # build the new_generation
-		    new_gen.append(sp[0])
-		    for j in range(nb_mut):
-		    	new_gen.append( sp[j].mutate_choose_one() )
-		    for j in range(nb_enfant):
-		    	parent1 = sp[ int(0 + random.gauss(0, 1)) ]
-		    	parent2 = parent1
-		    	while parent2 == parent1 :
-		    		parent2 = sp[int(1 + random.gauss(0, 2)) ]
-		    	enfant = parent1.cross_over(parent2)
-		    	new_gen.append(enfant)
+			new_gen = [] # build the new_generation
+			new_gen.append(sp[0])
+			for j in range(nb_mut):
+				new_gen.append( sp[j].mutate_choose_one() )
+			for j in range(nb_enfant):
+				parent1 = sp[ int(0 + random.gauss(0, 1)) ]
+				parent2 = parent1
+				while parent2 == parent1 :
+					parent2 = sp[int(1 + random.gauss(0, 2)) ]
+				enfant = parent1.cross_over(parent2)
+				new_gen.append(enfant)
 		    	
-		    self.pop = new_gen
+			self.pop = new_gen
 		    
 		if plot :
 			plt.plot(all_bests)
