@@ -1,6 +1,7 @@
 import random
 import networkx as nx
 import matplotlib.pyplot as plt
+import numpy as np
 
 class Edge :
     def __init__(self, u, v, a=0, b=0):
@@ -40,6 +41,31 @@ class Graph : # a graph with weights
 		nx.draw(G, with_labels=True, font_weight='bold', node_color=node_colors, node_size = 1000)
 		plt.show()
 		
+	def visualize_genom(self, genom, label = True):	# Il faut que genom.weights et self.G.edges ait la même taille !!!
+		G = nx.DiGraph()
+		for i in self.nodes :
+			G.add_node(i)
+		#list_weighted_edges = []
+		dico_edge_width = {}
+		dico_label_edges = {}
+		proba_weights = self.compute_proba(genom)
+		for k,e in enumerate(self.edges) :
+			i,j = e.u, e.v
+			G.add_edge(i,j)
+			w = round(proba_weights[e], 3)
+			dico_label_edges[(i,j)] = str(w)
+			dico_edge_width[(i,j)] = 1+5*w
+			#list_weighted_edges.append((i,j,w))
+		#G.add_weighted_edges_from(list_weighted_edges)
+		pos = nx.planar_layout(G)
+		# Create a list of colors for the nodes
+		node_colors = ['green' if i == 0 else 'red' if i == self.nb_nodes - 1 else 'blue' for i in G.nodes()]
+		nx.draw(G, pos, with_labels=True, font_weight='bold', node_color=node_colors, node_size = 1000)
+		if label :
+			nx.draw_networkx_edge_labels(G, pos, edge_labels = dico_label_edges, font_size=10, font_color='red')
+		nx.draw_networkx_edges(G, pos,edgelist=G.edges(), width=[dico_edge_width[e] for e in G.edges()])
+		plt.show()
+		
 	def random_traject(self, genom):
 		dict_edges_weghted = { self.edges[i]: genom.weights[i] for i in range(genom.n) }
 		chemin = [self.s]
@@ -66,3 +92,14 @@ class Graph : # a graph with weights
 		
 	def out_edges(self, node):
 		return [e for e in self.edges if e.u == node]
+		
+	def compute_proba(self, genom): #compute the dico of probas {edge : proba} such that the sum of possible path is always 1
+		probas = {}
+		for node in range(self.nb_nodes):
+			out_weights = self.out_edges_weighted(node, genom)
+			total_weight = sum(out_weights.values())
+			for e,w in out_weights.items():
+				proba = w/total_weight
+				probas[e] = proba
+		return probas
+				
