@@ -25,6 +25,9 @@ class Graph : # a graph with weights
 	def add_edge(self, u, v, a, b):
 		new_edge = Edge(u, v, a, b)
 		self.edges.append(new_edge)
+	
+	def edge_index(self, edge):
+		return self.edges.index(edge)
 
 	def print_graph(self):
 		for edge in self.edges :

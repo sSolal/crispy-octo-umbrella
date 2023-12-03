@@ -21,13 +21,16 @@ DECAY_FACTOR = 0.5 #Experimental. A low factor means that the simulation updates
 #Simulation helpers
 
 class SimulationState:
-    def __init__(self, network):
+    def __init__(self, network, flow=CAR_FLOW, delay=DELAY_IN_MEASURE):
         self.cars_on_network = 0
         self.cars_on_road = {e:0 for e in network.edges} #How many cars are on each given road
         self.cross_time = {e:max(e.a, 1) for e in network.edges}#How long it takes (experimentally to cross the edge)
 
         self.total_travel_time = 0
         self.cars_measured = 0
+
+        self.flow = flow
+        self.delay = delay
 
         self.measure_started = False
 
@@ -82,6 +85,8 @@ def car(env, network, genom, simulation):
         #Updating the experimental "cross_time of the road"
         simulation.update_cross_time(road, cross_time)
 
+    simulation.cars_on_network -= 1
+
     if measuring:
         simulation.total_travel_time += travel_time
         simulation.cars_measured += 1
@@ -90,11 +95,11 @@ def car_factory(env, network, genom, simulation):
     while True:
         new_car = car(env, network, genom, simulation)
         env.process(new_car)
-        yield env.timeout(1/CAR_FLOW)
+        yield env.timeout(1/simulation.flow)
 
 # We start measuring cars some time after the beginning of the simulation to allow the network to "fill up"
 def delay_measure(env, simulation):
-    yield env.timeout(DELAY_IN_MEASURE)
+    yield env.timeout(simulation.delay)
     simulation.measure_started = True
 
 # Regularly displays relevant infos so that we know what is happenning
@@ -123,24 +128,42 @@ def generate_network_braess(braess=False):
     return network, genom
 
 
-def experimentation (network, genom):
-    print("Hello World")
-
+def experimentation (network, genom, delay = DELAY_IN_MEASURE, flow = CAR_FLOW, simulation_length = 100, debug=True):
     env = Env()
-    simulation = SimulationState(network)
+    simulation = SimulationState(network, flow = flow, delay = delay)
 
     #Launch all the processes to throw cars into the network and monitor
-    env.process(display_info(env, simulation, 20))
+    if debug:
+        env.process(display_info(env, simulation, 20))
     env.process(delay_measure(env, simulation))
     env.process(car_factory(env, network, genom, simulation))
 
-    env.run(until=100)
+    env.run(until=simulation_length)
     
-    print("Average time :", simulation.total_travel_time/simulation.cars_measured)
+    return simulation.total_travel_time/simulation.cars_measured
 
 if __name__=="__main__":
-     print("Experimentation without Braess's road")
-     experimentation(*generate_network_braess())
-     print("Experimentation with Braess's road")
-     experimentation(*generate_network_braess(True))
-     
+    print("Experimentation without Braess's road")
+    time = experimentation(*generate_network_braess())
+    print("Average time :", time)
+    print("Experimentation with Braess's road")
+    time = experimentation(*generate_network_braess(True))
+    print("Average time :", time)
+
+    print("Justine's example")
+
+    #Justine's example
+    network = Graph(6)
+    network.add_edge(0, 1, 1, 1)
+    network.add_edge(0, 2, 1, 1)
+    network.add_edge(0, 4, 1, 1)
+    network.add_edge(1, 3, 1, 1)
+    network.add_edge(1, 5, 1, 1)
+    network.add_edge(3, 5, 1, 1)
+    network.add_edge(2, 4, 1, 1)
+    network.add_edge(2, 3, 1, 1)
+    network.add_edge(4, 5, 1, 1)
+
+    genom = Genom(9, [3,2,5,3,7,1,2,8,1])
+    time = experimentation(network, genom, delay=100, flow=50, simulation_length=5000)
+    print("Average time :", time)
