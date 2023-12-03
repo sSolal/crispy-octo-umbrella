@@ -56,8 +56,23 @@ class Genom:
 		        new_weights.append(other.weights[i])
 		return Genom(self.n, new_weights)
 		                      
-	def evaluate_on(self, G):  # Return the value of the fitness function for one individual (how he performs on the graph G)
+	def evaluate_on(self, G):  # Return the value of the fitness function for one individual (how he performs on the graph G without congestion)
 		return G.eval_simple(self)
+		
+	def evaluate_congestion(self, G, D = 100): 	# D the flow of drivers
+		weights_normalized = G.compute_proba(self)	# dico edge : proba
+		flows = G.compute_flow(weights_normalized)
+		average_travel_time = 0
+		all_paths = G.all_path()
+		for path in all_paths :
+			proba_taking_it = 1
+			time_taking_it = 0
+			for e in path :
+				proba_taking_it = proba_taking_it * weights_normalized[e]
+				time_taking_it = time_taking_it + (e.b + e.a * D*flows[e])
+			average_travel_time += proba_taking_it*time_taking_it
+		return average_travel_time
+			
                               
 class Population:
 	""" 
@@ -74,48 +89,46 @@ class Population:
 		self.pop=[]
 		self.nb_edge = len(self.G.edges)
 		for i in range(self.nb_indiv):
-		    self.pop.append(Genom(self.nb_edge))
+			self.pop.append(Genom(self.nb_edge))
 
-	def evaluate_pop(self):
+	def evaluate_pop(self, congestion = True):
 		dict_eval = {}
 		for ind in self.pop :
-		    dict_eval[ind] = ind.evaluate_on(self.G)
+			if congestion :
+				dict_eval[ind] = ind.evaluate_congestion(self.G)
+			else :
+				dict_eval[ind] = ind.evaluate_on(self.G)
 		sorted_pop = sorted(self.pop, key = lambda x : dict_eval[x])
 		return sorted_pop, dict_eval[sorted_pop[0]]
 		                      
-	def train(self, Nb_generations, part_mut = 0.1, plot = True):
+	def train(self, Nb_generations, part_mut = 0.1, plot = True, congestion = True):
 		nb_mut = int(self.nb_indiv*part_mut)
 		nb_enfant = self.nb_indiv - nb_mut - 1
 		all_bests = []
 		better_bests = []
 		best_solution = np.inf
 		for i in range(1, Nb_generations+1):
-		    sp, best_perf = self.evaluate_pop()
-		    all_bests.append(best_perf)
-		    if best_perf < best_solution :
-		    	better_bests.append((best_perf, i))
-		    	best_solution = best_perf
+			sp, best_perf = self.evaluate_pop(congestion)
+			all_bests.append(best_perf)
+			if best_perf < best_solution :
+				better_bests.append((best_perf, i))
+				best_solution = best_perf
 		    	
-		    new_gen = [] # build the new_generation
-		    new_gen.append(sp[0])
-		    for j in range(nb_mut):
-		    	new_gen.append( sp[j].mutate_choose_one() )
-		    for j in range(nb_enfant):
-		    	parent1 = sp[ int(0 + random.gauss(0, 1)) ]
-		    	parent2 = parent1
-		    	while parent2 == parent1 :
-		    		parent2 = sp[int(1 + random.gauss(0, 2)) ]
-		    	enfant = parent1.cross_over(parent2)
-		    	new_gen.append(enfant)
+			new_gen = [] # build the new_generation
+			new_gen.append(sp[0])
+			for j in range(nb_mut):
+				new_gen.append( sp[j].mutate_choose_one() )
+			for j in range(nb_enfant):
+				parent1 = sp[ int(0 + random.gauss(0, 1)) ]
+				parent2 = parent1
+				while parent2 == parent1 :
+					parent2 = sp[int(1 + random.gauss(0, 2)) ]
+				enfant = parent1.cross_over(parent2)
+				new_gen.append(enfant)
 		    	
-		    self.pop = new_gen
+			self.pop = new_gen
 		    
 		if plot :
 			plt.plot(all_bests)
 			plt.show()
 		return self.pop
-		
-		    
-		    
-# P = Genom(10)
-# enfant = P.mutate()

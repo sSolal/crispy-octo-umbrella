@@ -21,6 +21,7 @@ class Graph : # a graph with weights
 		self.s = 0
 		self.t = Nb_nodes-1
 		self.edges = []
+		
 	def add_edge(self, u, v, a, b):
 		new_edge = Edge(u, v, a, b)
 		self.edges.append(new_edge)
@@ -102,4 +103,48 @@ class Graph : # a graph with weights
 				proba = w/total_weight
 				probas[e] = proba
 		return probas
-				
+		
+	def compute_flow(self, probas):	#compute the dico of flow of driver {edge : flow}
+	
+		previous_edges = {n:[] for n in self.nodes}
+		for e in self.edges :
+			previous_edges[e.v].append(e)
+		nb_edges_to_be_visited = {n : len(previous_edges[n]) for n in self.nodes}
+		flows = {e:0 for e in self.edges}
+		active_node = [self.s]
+		while active_node != [] :
+			node = active_node.pop(0)
+			if node == 0 :
+				total_flow_at_node = 1
+			else :
+				total_flow_at_node = 0
+				for previous_e in previous_edges[node]:
+					total_flow_at_node += flows[previous_e]
+			for e in self.edges :
+				if e.u == node :
+					flow = probas[e] * total_flow_at_node
+					flows[e] = flow
+					nb_edges_to_be_visited[e.v] -= 1
+					if nb_edges_to_be_visited[e.v] == 0:
+						active_node.append(e.v)
+		return flows
+
+	def all_path(self): # return the list of paths from s to t (each path is a list of edges)	 !!!!! ACYCLIC DIRECTED GRAPH
+		total_paths = []	# list of paths from s to t
+		builded_paths = []
+		for e in self.edges :
+			if e.u == self.s :
+				builded_paths.append([e])
+		while len(builded_paths) != 0 :
+			path = builded_paths.pop(0)
+			actual_node = path[-1].v
+			for e in self.edges :
+				if e.u == actual_node :
+					new_path = path.copy()
+					new_path.append(e)
+					if e.v == self.t :
+						total_paths.append(new_path)
+					else :
+						builded_paths.append(new_path)
+		return total_paths
+			
