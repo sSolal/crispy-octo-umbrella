@@ -1,6 +1,7 @@
 from simpy import Environment, RealtimeEnvironment
 from graphs import Graph
 import random
+from algo_gen import Genom
 # The network is a succession of ressources
 
 #Does the simulation run in realtime (useful to understand what is going on by printing infos)
@@ -40,9 +41,18 @@ class SimulationState:
     def display(self):
         print(self.cars_on_network, "cars on the road !")
 
+def coefficiented_choice(choices, coefs):
+    # We choose a road, with a probability proportional to the coefficient
+    total = sum(coefs)
+    r = random.random()*total
+    for i, c in enumerate(coefs):
+        if r < c:
+            return choices[i]
+        r -= c
+
 #Simulation pieces
 
-def car(env, network, simulation):
+def car(env, network, genom, simulation):
     current_city = 0
     travel_time = 0 #Accumulated during simulation
 
@@ -53,7 +63,10 @@ def car(env, network, simulation):
 
     while current_city != len(network.nodes)-1: #While we are not at destination (last city of the map)
 
-        road = random.choice(network.out_edges(current_city)) #Choosing a road at random
+        choices = network.out_edges(current_city)
+        coefs = [genom.weights[network.edges.index(e)] for e in choices] #Could have written just "genom.weights[e] for e in choices" but it seems more robust like that
+        
+        road = coefficiented_choice(choices, coefs) #Choosing a road at random
 
         simulation.cars_on_road[road]+=1 # Entering the road
 
@@ -73,9 +86,9 @@ def car(env, network, simulation):
         simulation.total_travel_time += travel_time
         simulation.cars_measured += 1
 
-def car_factory(env, network, simulation):
+def car_factory(env, network, genom, simulation):
     while True:
-        new_car = car(env, network, simulation)
+        new_car = car(env, network, genom, simulation)
         env.process(new_car)
         yield env.timeout(1/CAR_FLOW)
 
@@ -99,27 +112,27 @@ def generate_network_braess(braess=False):
         network.add_edge(1, 3, 15, 0)
         network.add_edge(0, 2, 15, 0)
         network.add_edge(2, 3, 0, 1/400)
+        genom = Genom(4, [1,1,1,1])
     else:
         network.add_edge(0, 1, 0, 1/400)
         #network.add_edge(1, 3, 45, 0)
         network.add_edge(1, 2, 2, 0)
         #network.add_edge(0, 2, 45, 1)
         network.add_edge(2, 3, 0, 1/400)
-    return network
+        genom = Genom(3, [1,1,1])
+    return network, genom
 
 
-def experimentation (braess=False):
+def experimentation (network, genom):
     print("Hello World")
 
-    network = generate_network_braess(braess)
-    
     env = Env()
     simulation = SimulationState(network)
 
     #Launch all the processes to throw cars into the network and monitor
     env.process(display_info(env, simulation, 20))
     env.process(delay_measure(env, simulation))
-    env.process(car_factory(env, network, simulation))
+    env.process(car_factory(env, network, genom, simulation))
 
     env.run(until=100)
     
@@ -127,7 +140,7 @@ def experimentation (braess=False):
 
 if __name__=="__main__":
      print("Experimentation without Braess's road")
-     experimentation()
+     experimentation(*generate_network_braess())
      print("Experimentation with Braess's road")
-     experimentation(braess=True)
+     experimentation(*generate_network_braess(True))
      

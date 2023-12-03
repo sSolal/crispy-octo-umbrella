@@ -21,15 +21,15 @@ class Genom:
 	def random_genom(self):
 		weights = []
 		for i in range(self.n):
-		    weights.append(random.random())	# random between 0 et 1
+			weights.append(random.random())	# random between 0 et 1
 		self.weights = weights
 
 	def mutate_proba(self, proba_mutation = 0.1):
 		new_weights = self.weights.copy()
 		for i in range(self.n):
-		    if random.random() < proba_mutation : 
-		        new_weights[i] = min(1, max(0.01,  new_weights[i] + random.gauss(0,1)))
-		return Genom(self.n, new_weights)
+			if random.random() < proba_mutation : 
+				new_weights[i] = min(1, max(0.01,  new_weights[i] + random.gauss(0,1)))
+			return Genom(self.n, new_weights)
 		        
 	def mutate_choose_one(self):
 		new_weights = self.weights.copy()
@@ -42,7 +42,7 @@ class Genom:
 		i = random.randint(0, self.n-1)
 		j = i
 		while j != i :
-		    j = random.randint(0, self.n-1)
+			j = random.randint(0, self.n-1)
 		new_weights[i], new_weights[j]=new_weights[j], new_weights[i]
 		return Genom(self.n, new_weights)
 		                       
@@ -50,10 +50,10 @@ class Genom:
 		new_weights = []
 		assert self.n == other.n 
 		for i in range(self.n):
-		    if random.random() < 0.5 :
-		        new_weights.append(self.weights[i])
-		    else :
-		        new_weights.append(other.weights[i])
+			if random.random() < 0.5 :
+				new_weights.append(self.weights[i])
+			else :
+				new_weights.append(other.weights[i])
 		return Genom(self.n, new_weights)
 		                      
 	def evaluate_on(self, G):  # Return the value of the fitness function for one individual (how he performs on the graph G without congestion)
