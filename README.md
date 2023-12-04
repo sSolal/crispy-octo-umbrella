@@ -5,15 +5,18 @@ Gabin Calmet, Solal Stern, Justine Cauvi
 
 Tâche à faire en vrac :
 
-- Faire une simulation de voitures (fichier simulation_voiture)
-- Faire un fichier class graph
-- Implémenter algo génétique (fichier algo_génétique)
-- Partie modélisation du problème et résolution
-- Déterminer la fonction de fitness pour notre premier modèle (ax+b)
+- Faire une simulation de voitures (fichier simulation_voiture) ✓
+- Faire un fichier class graph ✓
+- Implémenter algo génétique (fichier algo_génétique) ✓
+- Partie modélisation du problème et résolution ✓
+- Déterminer la fonction de fitness pour notre premier modèle (ax+b) ✓
 - Réfléchir au paramètre qu'on ajuste, au metrics qu'on mesure qui sont pertinentes pour notre problème
 - Faire les mesures et analyser
 - Faire des grapiques explicatifs pour que ce soit clair (notamment un individu c'est une chaîne de Markov...)
 - Rédiger le rapport
+    - Rédiger le rapport partie Justine ✓ (sauf les références bibliographiques)
+    - Rédiger le rapport partie Solal
+    - Rédiger le rapport partie Gabin
 - Faire la présentation finale
 - Respirer, c'est important
 
